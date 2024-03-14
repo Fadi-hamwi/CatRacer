@@ -360,21 +360,26 @@ def fastest_words(match):
     >>> p1
     [4, 1, 6]
     """
-    player_indices = range(len(get_all_times(match)))  # contains an *index* for each player
-    word_indices = range(len(get_all_words(match)))  # contains an *index* for each word
-    fastest_words_per_player = [[] for _ in player_indices]
+    player_count = len(get_all_times(match))
+    word_count = len(get_all_words(match))
+    fastest_words_per_player = [[] for _ in range(player_count)]
 
-    for word_index in word_indices:
-        min_time_per_word_for_player, player, word = math.inf, 0, ""
-        for player_index in player_indices:
-            current_word_time = time(match, player_index, word_index)
-            if current_word_time < min_time_per_word_for_player:
-                min_time_per_word_for_player = current_word_time
-                player = player_index
-                word = get_word(match, word_index)
-
-        fastest_words_per_player[player].append(word)
+    for word_index in range(word_count):
+        compute_fastest_words_for_each_player(fastest_words_per_player, match, player_count, word_index)
     return fastest_words_per_player
+
+
+def compute_fastest_words_for_each_player(fastest_words_per_player, match, player_count, word_index):
+    min_time_per_word_for_player = math.inf
+    player = 0
+    word = ""
+    for player_index in range(player_count):
+        current_word_time = time(match, player_index, word_index)
+        if current_word_time < min_time_per_word_for_player:
+            min_time_per_word_for_player = current_word_time
+            player = player_index
+            word = get_word(match, word_index)
+    fastest_words_per_player[player].append(word)
 
 
 def match(words, times):
