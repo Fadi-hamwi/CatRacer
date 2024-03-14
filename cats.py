@@ -288,17 +288,29 @@ def report_progress(typed, prompt, user_id, upload):
     ID: 3 Progress: 0.2
     0.2
     """
-    # BEGIN PROBLEM 8
-    typed_correctly = 0
-    for i in range(len(typed)):
-        if typed[i] == prompt[i]:
-            typed_correctly += 1
-        else:
-            break
-    progress_ratio = typed_correctly / len(prompt)
+    progress_ratio = compute_progress_ratio(prompt, typed)
     upload({'id': user_id, 'progress': progress_ratio})
     return progress_ratio
-    # END PROBLEM 8
+
+
+def compute_progress_ratio(prompt, typed):
+    correctly_typed_till_mistype = compute_correct_words_till_mistype(prompt, typed)
+    progress_ratio = get_progress_ratio(correctly_typed_till_mistype, prompt)
+    return progress_ratio
+
+
+def get_progress_ratio(correctly_typed_till_mistype, prompt):
+    return correctly_typed_till_mistype / len(prompt)
+
+
+def compute_correct_words_till_mistype(prompt, typed):
+    typed_correctly_till_mistype = 0
+    for i in range(len(typed)):
+        if typed[i] == prompt[i]:
+            typed_correctly_till_mistype += 1
+        else:
+            break
+    return typed_correctly_till_mistype
 
 
 def time_per_word(words, times_per_player):
@@ -318,19 +330,19 @@ def time_per_word(words, times_per_player):
     >>> match["times"]
     [[6, 3, 6, 2], [10, 6, 1, 2]]
     """
-    # BEGIN PROBLEM 9
     p = times_per_player
     times = []
     for i in range(len(p)):
-        times.append([0] * (len(p[i]) - 1))
-
-    for i in range(len(p)):
-        for j in range(len(p[i]) - 1):
-            times[i][j] = p[i][j + 1] - p[i][j]
+        times += [get_time_per_player(p[i])]
 
     return match(words, times)
 
-    # END PROBLEM 9
+
+def get_time_per_player(times):
+    player_time = []
+    for i in range(len(times)-1):
+        player_time.append(times[i+1] - times[i])
+    return player_time
 
 
 def fastest_words(match):
@@ -350,21 +362,18 @@ def fastest_words(match):
     """
     player_indices = range(len(get_all_times(match)))  # contains an *index* for each player
     word_indices = range(len(get_all_words(match)))  # contains an *index* for each word
-    # BEGIN PROBLEM 10
-    fastest_words_per_player = []
-    for i in player_indices:
-        fastest_words_per_player.append([])
+    fastest_words_per_player = [[] for _ in player_indices]
 
-    for i in word_indices:
-        total_time_per_word, player, word = 100, 0, ""
-        for j in player_indices:
-            if time(match, j, i) < total_time_per_word:
-                total_time_per_word = time(match, j, i)
-                player = j
-                word = get_word(match, i)
+    for word_index in word_indices:
+        min_time_per_word_for_player, player, word = math.inf, 0, ""
+        for player_index in player_indices:
+            current_word_time = time(match, player_index, word_index)
+            if current_word_time < min_time_per_word_for_player:
+                min_time_per_word_for_player = current_word_time
+                player = player_index
+                word = get_word(match, word_index)
 
         fastest_words_per_player[player].append(word)
-    # END PROBLEM 10
     return fastest_words_per_player
 
 
